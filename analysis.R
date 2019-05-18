@@ -83,3 +83,52 @@ kt
 library(pgirmess)
 ktph <- kruskalmc(male_100_3$timing, male_100_3$runner)
 View(ktph$dif.com)
+
+library(infer)
+set.seed(2154)
+compare_runners <- function(runner1, runner2, visualize = FALSE) {
+  
+  diff_med <- male_100_3 %>%
+    filter(runner %in% c(runner1, runner2)) %>%
+    arrange(runner) %>%
+    specify(timing ~ runner) %>%
+    calculate("diff in medians",
+              order = c(runner1, runner2))
+  
+  diff_med_null <- male_100_3 %>%
+    filter(runner %in% c(runner1, runner2)) %>%
+    arrange(runner) %>%
+    specify(timing ~ runner) %>%
+    hypothesize(null = "independence") %>%
+    generate(reps = 10000, type = "permute") %>%
+    calculate("diff in medians",
+              order = c(runner1, runner2))
+  
+  if (visualize) {
+    diff_med_plot <- diff_med_null %>%
+      visualize(method = "simulation") +
+      shade_p_value(obs_stat = diff_med, direction = "less") +
+      xlab("Difference in median run timings") +
+      ylab(NULL) +
+      ggtitle(paste0("Comparing ", runner1, " and ", runner2)) +
+      scale_x_continuous(labels = scales::number_format(accuracy = 0.01)) +
+      theme_bw() +
+      theme(
+        panel.border = element_blank(),
+        plot.title = element_text(hjust = 0.5, vjust = 0.5)
+      )
+    print(diff_med_plot)
+  }
+  
+  diff_med_null %>%
+    get_pvalue(obs_stat = diff_med, direction = "less")
+    
+}
+
+compare_runners("Usain Bolt", "Asafa Powell", TRUE)
+compare_runners("Asafa Powell", "Yohan Blake", TRUE)
+compare_runners("Yohan Blake", "Justin Gatlin", TRUE)
+compare_runners("Justin Gatlin", "Maurice Greene", TRUE)
+compare_runners("Maurice Greene", "Tyson Gay", TRUE)
+
+compare_runners("Usain Bolt", "Yohan Blake", TRUE)
