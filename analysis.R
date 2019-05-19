@@ -132,3 +132,26 @@ compare_runners("Justin Gatlin", "Maurice Greene", TRUE)
 compare_runners("Maurice Greene", "Tyson Gay", TRUE)
 
 compare_runners("Usain Bolt", "Yohan Blake", TRUE)
+
+compare_runners2 <- function(runner1, runner2) {
+  
+  ds <- male_100_3 %>%
+    filter(runner %in% c(runner1, runner2)) %>%
+    mutate(
+      runner = case_when(
+        runner == runner1 ~ paste0("01.", runner1),
+        runner == runner2 ~ paste0("02.", runner2)
+      )
+    ) %>%
+    arrange(runner)
+  t.test(timing ~ runner, data = ds,
+         alternative = "less", var.equal = FALSE)
+  
+}
+compare_runners2("Usain Bolt", "Asafa Powell")
+compare_runners2("Asafa Powell", "Yohan Blake")
+compare_runners2("Yohan Blake", "Justin Gatlin")
+compare_runners2("Justin Gatlin", "Maurice Greene")
+compare_runners2("Maurice Greene", "Tyson Gay")
+
+compare_runners2("Usain Bolt", "Yohan Blake")
